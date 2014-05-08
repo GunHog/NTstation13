@@ -25,8 +25,6 @@
 	health = 25
 	maxhealth = 25
 	var/cleaning = 0
-	var/screwloose = 0
-	var/oddbutton = 0
 	var/blood = 1
 	var/list/target_types = list()
 	var/obj/effect/decal/cleanable/target
@@ -91,12 +89,12 @@ text("<A href='?src=\ref[src];operation=start'>[src.on ? "On" : "Off"]</A>"))
 		dat += text({"<BR>Cleans Blood: []<BR>"}, text("<A href='?src=\ref[src];operation=blood'>[src.blood ? "Yes" : "No"]</A>"))
 		dat += text({"<BR>Patrol station: []<BR>"}, text("<A href='?src=\ref[src];operation=patrol'>[src.should_patrol ? "Yes" : "No"]</A>"))
 	//	dat += text({"<BR>Beacon frequency: []<BR>"}, text("<A href='?src=\ref[src];operation=freq'>[src.beacon_freq]</A>"))
-	if(src.open && !src.locked)
+/*	if(src.open && !src.locked)
 		dat += text({"
 Odd looking screw twiddled: []<BR>
 Weird button pressed: []"},
 text("<A href='?src=\ref[src];operation=screw'>[src.screwloose ? "Yes" : "No"]</A>"),
-text("<A href='?src=\ref[src];operation=oddbutton'>[src.oddbutton ? "Yes" : "No"]</A>"))
+text("<A href='?src=\ref[src];operation=oddbutton'>[src.oddbutton ? "Yes" : "No"]</A>"))*/
 
 	user << browse("<HEAD><TITLE>Cleaner v1.0 controls</TITLE></HEAD>[dat]", "window=autocleaner")
 	onclose(user, "autocleaner")
@@ -126,15 +124,15 @@ text("<A href='?src=\ref[src];operation=oddbutton'>[src.oddbutton ? "Yes" : "No"
 			if (freq > 0)
 				src.beacon_freq = freq
 			src.updateUsrDialog()
-		if("screw")
+/*		if("screw")
 			src.screwloose = !src.screwloose
 			usr << "<span class='notice>You twiddle the screw.</span>"
 			src.updateUsrDialog()
 		if("oddbutton")
 			src.oddbutton = !src.oddbutton
 			usr << "<span class='notice'>You press the weird button.</span>"
-			src.updateUsrDialog()
-
+			src.updateUsrDialog() */
+			
 /obj/machinery/bot/cleanbot/attackby(obj/item/weapon/W, mob/user as mob)
 	if (istype(W, /obj/item/weapon/card/id)||istype(W, /obj/item/device/pda))
 		if(src.allowed(usr) && !open && !emagged)
@@ -153,9 +151,8 @@ text("<A href='?src=\ref[src];operation=oddbutton'>[src.oddbutton ? "Yes" : "No"
 /obj/machinery/bot/cleanbot/Emag(mob/user as mob)
 	..()
 	if(open && !locked)
-		if(user) user << "<span class='notice'>The [src] buzzes and beeps.</span>"
-		src.oddbutton = 1
-		src.screwloose = 1
+		if(user) user << "<span class='notice'>[src] buzzes and beeps.</span>"
+		src.emagged = 2
 
 /obj/machinery/bot/cleanbot/process()
 	set background = BACKGROUND_ENABLED
@@ -166,17 +163,18 @@ text("<A href='?src=\ref[src];operation=oddbutton'>[src.oddbutton ? "Yes" : "No"
 		return
 	var/list/cleanbottargets = list()
 
-	if(!src.screwloose && !src.oddbutton && prob(5))
+	if(!src.emagged && prob(5))
 		visible_message("[src] makes an excited beeping booping sound!")
 
-	if(src.screwloose && prob(5))
+	if(src.emagged && prob(10)) //Wets floors randomly
 		if(istype(loc,/turf/simulated))
 			var/turf/simulated/T = src.loc
 			T.MakeSlippery()
 
-	if(src.oddbutton && prob(5))
+	if(src.emagged && prob(5)) //Spawns foam!
 		visible_message("<span class='danger'>[src] whirs and bubbles violently, before releasing a plume of froth!</span>")
 		new /obj/effect/effect/foam(src.loc)
+		
 	if(!src.target || src.target == null)
 		for (var/obj/effect/decal/cleanable/D in view(7,src))
 			for(var/T in src.target_types)
