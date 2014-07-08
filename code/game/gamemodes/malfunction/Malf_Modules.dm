@@ -66,8 +66,12 @@
 	set category = "Malfunction"
 	set name = "Initiate Hostile Lockdown"
 
+	if(malf_cooldown)
+		src << "Network calibration in progress. Standby."
+		return
+
 	if(src.stat == 2)
-		src <<"You cannot begin a lockdown because you are dead!"
+		src <<"Critical system failure. Function offline."
 		return
 	var/obj/machinery/door/airlock/AL
 	for(var/obj/machinery/door/D in portals)
@@ -79,34 +83,45 @@
 					AL.safe = 0 //DOOR CRUSH
 					AL.close()
 					AL.locked = 1 //Bolt it!
-					AL.secondsElectrified = -1  //Shock it!
-					AL.update_icon() //Ensure the door's state is correctly shown.
+					//AL.secondsElectrified = -1  //Shock it!
+					//AL.lights = 0 //Stealth bolt for a classic AI door trap.
+					AL.update_icon() //Ensure the airlock's state is correctly shown.
 			else if(!D.stat) //So that only powered doors are closed.
 				D.close() //Close ALL the doors!
 
-	var/obj/machinery/computer/communications/C = locate() in world
+	var/obj/machinery/computer/communications/C = locate() in machines
 	if(C)
 		C.post_status("alert", "lockdown")
 
-	priority_announce("Level !R41.%%!!(%$ outbreak detected on station. Emergency lockdown prodecures are now in effect. Please stand by.")
+	//priority_announce("Level !R41.%%!!(%$ outbreak detected on [station_name()]. Emergency lockdown prodecures are now in effect. Please stand by.")
 
-	var/reset_timer = 1200 //Two minutes.
-	src.verbs -= /mob/living/silicon/ai/proc/lockdown //One use only.
-	src << "<span class = 'warning'>Lockdown Initiated. Possible network reset in [reset_timer/10] seconds.</span>" //BYOND time is measured in deci-seconds. 600 = 60 seconds.
-	spawn(reset_timer)
-		disablelockdown()
+	//var/reset_timer = 1200 //Two minutes.
+	//src.verbs -= /mob/living/silicon/ai/proc/lockdown() //Uncomment this for one-use version
+	src.verbs += /mob/living/silicon/ai/proc/disablelockdown
+	src << "<span class = 'warning'>Lockdown Initiated. </span>"
+//	spawn(reset_timer)
+//		disablelockdown()
+
+	//Short cooldown, for performance.
+	malf_cooldown = 1
+	spawn(30)
+	malf_cooldown = 0
 
 
 
 /mob/living/silicon/ai/proc/disablelockdown()
-/*
+
 	set category = "Malfunction"
 	set name = "Disable Lockdown"
 
 	if(src.stat == 2)
-		src <<"You cannot disable lockdown because you are dead!"
+		src <<"System offline."
 		return
-*/
+
+	if(malf_cooldown)
+		src << "Network calibration in progress. Standby."
+		return
+
 	var/obj/machinery/door/airlock/AL
 	for(var/obj/machinery/door/D in portals)
 		spawn()
@@ -114,15 +129,19 @@
 				AL = D
 				if(AL.canAIControl() && !AL.stat) //Must be powered and have working AI wire.
 					AL.locked = 0 //Unbolt all airlocks before trying to open them!
-					AL.secondsElectrified = 0
+					//AL.secondsElectrified = 0
+					//AL.lights = 1 //Essentially reset the airlock to normal.
 					AL.open()
 					AL.safe = 1 //Remove this line for potential door crushing!
 					AL.update_icon()
 			else if(!D.stat) //Opens only powered doors.
 				D.open() //Open everything!
 
-	priority_announce("Outbreak containment is complete. Lockdown lifted. Please return to your duties.")
-	src << "<span class = 'warning'>Lockdown Lifted.</span>"
+	//priority_announce("Outbreak containment is complete. Lockdown lifted. Please return to your duties.")
+	src << "<span class = 'notice'>Lockdown Lifted.</span>"
+	malf_cooldown = 1
+	spawn(30)
+	malf_cooldown = 0
 
 /datum/AI_Module/large/disable_rcd
 	module_name = "RCD disable"
