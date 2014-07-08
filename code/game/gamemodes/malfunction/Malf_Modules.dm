@@ -56,7 +56,7 @@
 /datum/AI_Module/large/lockdown
 	module_name = "Hostile Station Lockdown"
 	mod_pick_name = "lockdown"
-	description = "Take control of the airlock, blast door and fire control networks to electrify and lock them down. The network will reset itself a short time after."
+	description = "Take control of the airlock, blast door and fire control networks to lock them down. This may be reset at any time."
 	cost = 40
 	one_time = 1
 
