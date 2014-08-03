@@ -139,6 +139,7 @@ var/const/RADIO_MAGNETS = "9"
 var/const/RADIO_CLEANBOT = "10"
 var/const/RADIO_FLOORBOT = "11"
 var/const/RADIO_MEDBOT = "12"
+var/const/RADIO_HONKBOT = "13"
 
 var/global/datum/controller/radio/radio_controller
 

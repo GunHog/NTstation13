@@ -289,6 +289,7 @@ var/global/list/obj/item/device/pda/PDAs = list()
 				if (cartridge)
 					if (cartridge.access_clown)
 						dat += "<li><a href='byond://?src=\ref[src];choice=Honk'><img src=pda_honk.png> Honk Synthesizer</a></li>"
+						dat += "<li><a href='byond://?src=\ref[src];choice=53'><img src=pda_honk.png> Honkbot Domination!</a></li>"
 					if (cartridge.access_manifest)
 						dat += "<li><a href='byond://?src=\ref[src];choice=41'><img src=pda_notes.png> View Crew Manifest</a></li>"
 					if(cartridge.access_status_display)

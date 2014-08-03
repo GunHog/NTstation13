@@ -128,6 +128,10 @@
 	bot_filter = RADIO_CLEANBOT
 	bot_type = CLEAN_BOT
 
+/obj/item/radio/integrated/honkbot
+	bot_type = HONK_BOT
+	bot_filter = RADIO_HONKBOT
+
 /obj/item/radio/integrated/mule
 	//var/list/botlist = null		// list of bots
 	//var/obj/machinery/bot/mulebot/active 	// the active bot; if null, show bot list

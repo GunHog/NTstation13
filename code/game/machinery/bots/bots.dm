@@ -1,5 +1,6 @@
 // AI (i.e. game AI, not the AI player) controlled bots
 
+
 /obj/machinery/bot
 	icon = 'icons/obj/aibots.dmi'
 	layer = MOB_LAYER
@@ -53,6 +54,7 @@
 	#define FLOOR_BOT			3	// Floorbots
 	#define CLEAN_BOT			4	// Cleanbots
 	#define MED_BOT				5	// Medibots
+	#define HONK_BOT			6	// Honkbots
 
 	//Mode defines
 	#define BOT_IDLE 			0	// idle
@@ -74,9 +76,10 @@
 	#define BOT_NAV				16	// computing navigation
 	#define BOT_WAIT_FOR_NAV	17	// waiting for nav computation
 	#define BOT_NO_ROUTE		18	// no destination beacon found (or no route)
+	#define BOT_CHASE			19	// Honkbots chasing people
 	var/list/mode_name = list("In Pursuit","Preparing to Arrest","Arresting","Beginning Patrol","Patrolling","Summoned by PDA", \
 	"Cleaning", "Repairing", "Proceeding to work site","Healing","Responding","Loading/Unloading","Navigating to Delivery Location","Navigating to Home", \
-	"Waiting for clear path","Calculating navigation path","Pinging beacon network","Unable to reach destination")
+	"Waiting for clear path","Calculating navigation path","Pinging beacon network","Unable to reach destination", "Seeking honk target")
 	//This holds text for what the bot is mode doing, reported on the AI's bot control interface.
 
 

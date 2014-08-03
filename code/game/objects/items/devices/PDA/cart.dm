@@ -110,6 +110,10 @@
 		access_clown = 1
 		var/honk_charges = 5
 
+		/obj/item/weapon/cartridge/clown/New()
+			..()
+			radio = new /obj/item/radio/integrated/honkbot(src)
+
 	/obj/item/weapon/cartridge/mime
 		name = "\improper Gestur-O 1000 cartridge"
 		icon_state = "cart-mi"
@@ -670,6 +674,11 @@ Code:
 			if (52) //medbot control
 				menu = "<h4><img src=pda_medbot.png> Medibot Interlink</h4>"
 				var/obj/item/radio/integrated/medbot/SC = radio
+				bot_control(SC)
+
+			if (53) //honkbot control
+				menu = "<h4><img src=pda_medbot.png> Honkbot InterH0NK!</h4>"
+				var/obj/item/radio/integrated/honkbot/SC = radio
 				bot_control(SC)
 
 
