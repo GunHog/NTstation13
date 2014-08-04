@@ -1,4 +1,6 @@
-//The most annoying, evil,
+/*The most annoying, evil, poorly coded bot ever concieved. If you are reading this with the intention of putting it on a live server, then you are truly
+a monster. This bot is not intended for multiplayer. It is annoying. It will be hated. It is INTENDED to make people angry and want to kill it on sight.
+If this monstrosity somehow does make it to a live server, expect any admins spawning it to be de-adminned. YOU HAVE BEEN WARNED.*/
 
 /obj/machinery/bot/honkbot
 	name = "\improper Honkbot"
@@ -19,7 +21,7 @@
 	var/honklevel = 0 //To honk or not to honk
 	var/victim_lastloc //Loc of victim when HONKED.
 	var/last_found
-	var/honk_cooldown = 0 //To keep clownbot from honk blasting too much!
+	var/honk_cooldown = 0 //To keep honkbot from honk blasting too much!
 	var/tells_jokes = 0 //Determines if the bot will tell jokes.
 	var/chase_people = 0 //If enabled, the bot will attempt to hunt down and slip people!
 	var/no_honks = 0 //Disables the honkbot's ability to make honk noises.
@@ -71,6 +73,8 @@
 /obj/machinery/bot/honkbot/bot_reset()
 	..()
 	victim = null
+	oldvictim = null
+	fired_banana = 0
 	anchored = 0
 	walk_to(src,0)
 	last_found = world.time
@@ -96,12 +100,12 @@
 <TT><B>Automated Clown v.1.0.1 controls</B></TT><BR><BR>
 Status: []<BR>
 Behaviour controls are [locked ? "locked" : "unlocked"]<BR>
-Maintenance panel is [open ? "opened" : "closed"]<BR>
-Biogenerator charges remaining: [honk_ammo ? "<span class='good'>[honk_ammo]</span>" : "<span class='bad'>EMPTY!</span>"]"},
+Maintenance panel is [open ? "opened" : "closed"]<BR>"},
 
 "<A href='?src=\ref[src];power=1'>[on ? "On" : "Off"]</A>" )
 
 	if(!locked || issilicon(user))
+		dat += "<BR>Biogenerator charges remaining: [honk_ammo ? "<span class='good'>[honk_ammo]</span>" : "<span class='bad'>EMPTY!</span>"]"
 		dat += "<BR>Tells Jokes: <A href='?src=\ref[src];operation=jokemode'>[tells_jokes ? "<span class='good'>YES!!</span>" : "<span class='average'>No</span>"]</A>"
 		dat += "<BR>Hunter Mode: <A href='?src=\ref[src];operation=chasemode'>[chase_people ? "<span class='good'>YES!!</span>" : "<span class='average'>No</span>"]</A>"
 		dat += "<BR>Honk generator: <A href='?src=\ref[src];operation=horn'>[no_honks ? "<span class='average'>Off :(</span>" : "<span class='good'>Active!</span>"]</A>"
@@ -133,8 +137,7 @@ Biogenerator charges remaining: [honk_ammo ? "<span class='good'>[honk_ammo]</sp
 	switch(href_list["operation"])
 		if("honk")
 			honk()
-			var/obj/item/weapon/grown/bananapeel/BP = new /obj/item/weapon/grown/bananapeel(loc)
-			BP.throw_at(usr,4,4)
+			Crossed(usr)
 		if("honkblast")
 			honk_blast()
 		if("jokemode")
@@ -174,13 +177,13 @@ Biogenerator charges remaining: [honk_ammo ? "<span class='good'>[honk_ammo]</sp
 		if(user) user << "<span class='danger'> You short-circuit [src]'s HONK restraining module!</span>"
 		spawn(0)
 			for(var/mob/O in hearers(src, null))
-				O.show_message("<span class='danger'><B>[src] squeaks happily!</B></span>", 1)
+				O.show_message("<span class='danger'><B>[src] makes a garbled noise!</B></span>", 1)
+			playsound(loc, 'sound/AI/aimalf.ogg', 40, 1)
 		//if(user) oldvictim_name = user.name
 	tells_jokes = 1
 	chase_people = 1
 	no_honks = 0
 	auto_patrol = 1
-
 
 /obj/machinery/bot/honkbot/process()
 	set background = BACKGROUND_ENABLED
@@ -201,9 +204,13 @@ Biogenerator charges remaining: [honk_ammo ? "<span class='good'>[honk_ammo]</sp
 
 
 
-	if(emagged == 2 && prob(5)) //MAKE SOME NOOOISE!
-		honk_blast()
-		return
+	if(emagged == 2)
+		if(prob(5)) //MAKE SOME NOOOISE!
+			honk_blast()
+			return
+		else if(prob(6))
+			spark() //Hey, if we are lucky, we might just start a plasma fire!
+			return
 
 	if(prob(10) && !no_honks) //Honk!
 		honk()
@@ -218,28 +225,27 @@ Biogenerator charges remaining: [honk_ammo ? "<span class='good'>[honk_ammo]</sp
 		if(BOT_IDLE)		// idle
 
 			walk_to(src,0)
-			if(!mode && auto_patrol)	// still idle, and set to patrol
+			if(auto_patrol)	// Time to patrol if we have nothing to Honk!
 				mode = BOT_START_PATROL	// switch to patrol mode
 
-		if(BOT_CHASE)		// hunting for perp
+		if(BOT_CHASE)		//Chase people!
 
 			// If the Honkbot cannot reach his victim, he must give up!
-			if(frustration >= 4 || honk_ammo < 1) //There is no point in chasing a target if you are out of ammo!
+			if(frustration >= 8 || honk_ammo < 1) //There is no point in chasing a target if you are out of ammo!
 				visible_message("[src] makes a sad buzz.")
 				playsound(loc, 'sound/machines/buzz-sigh.ogg', 60, 0)
 				bot_reset()
 				return
 
 			if(victim)		// make sure victim exists
-				if(Adjacent(victim) && isturf(victim.loc))				//Bot must be next to victim!
+				if(isturf(loc) && isturf(victim.loc) && loc == victim.loc)	//Bot must be on bottom of victim!
 					//playsound(loc, 'sound/weapons/Egloves.ogg', 50, 1, -1)
+					victim.slip(4, 3, src) //Slip him! HONK!
 					var/obj/item/weapon/reagent_containers/food/snacks/pie/P = new /obj/item/weapon/reagent_containers/food/snacks/pie(loc)
-					P.throw_at(victim,2,4)
-					honk_ammo--
+					P.throw_at(victim,2,4) //Yep, it chases you down so it can pie you in the face. HONK!
 					mode = BOT_IDLE
 					oldvictim = victim
 					victim = null
-					Crossed(victim) //Slip him!
 					visible_message("[src] pings with great joy!")
 					playsound(loc, 'sound/machines/ping.ogg', 60, 0) //Laughing at your victory is the trademark of a clown!
 					walk_to(src,0)
@@ -249,7 +255,7 @@ Biogenerator charges remaining: [honk_ammo ? "<span class='good'>[honk_ammo]</sp
 				else if(honk_ammo > 1)		// not next to victim, and still have ammo left! CHASE HIM!!
 					var/turf/victim_distance = get_dist(src, victim)
 					walk_to(src, victim,0, 3) //Can you outrun the HONKS!?
-					if((get_dist(src, victim)) > (victim_distance))
+					if((get_dist(src, victim)) >= (victim_distance))
 						frustration++ //He is getting away!
 					else
 						frustration = 0
@@ -257,9 +263,11 @@ Biogenerator charges remaining: [honk_ammo ? "<span class='good'>[honk_ammo]</sp
 					if(victim_distance < 6 && !fired_banana) //In HONK range!
 						var/obj/item/weapon/grown/bananapeel/BP = new /obj/item/weapon/grown/bananapeel(loc)
 						BP.throw_at(victim,7,10) //Fire banana to slow down our victim!
-						BP.Crossed(victim) //Make SURE the victim slips! HAHA!
-						fired_banana = 1
+						if(BP.loc == victim.loc)
+							BP.Crossed(victim) //Make SURE the victim slips! HAHA!
+						fired_banana = 1 //Only fire one banana per victim.
 						honk_ammo--
+						honk() //This honk() is here just to make it that much more annoying!
 					return
 
 		if(BOT_START_PATROL)
@@ -338,8 +346,8 @@ Biogenerator charges remaining: [honk_ammo ? "<span class='good'>[honk_ammo]</sp
 /obj/machinery/bot/honkbot/Crossed(AM as mob|obj)
 	if (istype(AM, /mob/living/carbon))
 		var/mob/living/carbon/M = AM
-		M.slip(2, 1, src)
-		honk_ammo = min(honk_ammo++,10) //No more than 10 charges!
+		M.slip(3, 2, src)
+		honk_ammo = min(honk_ammo+1,10) //No more than 10 charges!
 		if(prob(15))
 			speak("Honk!")
 
@@ -372,6 +380,11 @@ Biogenerator charges remaining: [honk_ammo ? "<span class='good'>[honk_ammo]</sp
 	joke = pick(JL)
 	speak(joke)
 
+/obj/machinery/bot/honkbot/proc/spark()
+	var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
+	s.set_up(3, 1, src)
+	s.start()
+
 /obj/machinery/bot/honkbot/explode()
 
 	walk_to(src,0)
@@ -379,23 +392,19 @@ Biogenerator charges remaining: [honk_ammo ? "<span class='good'>[honk_ammo]</sp
 		speak("SEE HOW YOU LIKE THIS!")
 		honk_cooldown = 0
 		honk_blast()
+	else
+		speak("Nobody likes me...")
 
 	visible_message("<span class='danger'> <B>[src] blows apart!</B></span>", 1)
 	var/turf/Tsec = get_turf(src)
 
-	var/obj/item/weapon/honkbot_assembly/Sa = new /obj/item/weapon/honkbot_assembly(Tsec)
-	Sa.build_step = 1
-	Sa.overlays += "hs_hole"
-	Sa.created_name = name
 	new /obj/item/device/assembly/prox_sensor(Tsec)
-	new /obj/item/weapon/melee/baton(Tsec)
+	new /obj/item/weapon/bikehorn(Tsec)
 
 	if(prob(50))
 		new /obj/item/robot_parts/l_arm(Tsec)
 
-	var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
-	s.set_up(3, 1, src)
-	s.start()
+	spark()
 
 	new /obj/effect/decal/cleanable/oil(loc)
 	qdel(src)
@@ -406,35 +415,4 @@ Biogenerator charges remaining: [honk_ammo ? "<span class='good'>[honk_ammo]</sp
 		victim = user
 		mode = BOT_HUNT
 
-//Honk Construction
-/obj/item/weapon/bikehorn/attackby(var/obj/item/device/analyzer/AN, mob/user as mob)
-	..()
-
-	if(!istype(AN, /obj/item/device/analyzer))
-		return
-	qdel(AN)
-	var/obj/item/weapon/honkbot_assembly/A = new /obj/item/weapon/honkbot_assembly
-	user.put_in_hands(A)
-	user << "<span class='notice'>You begin building a honkbot!.</span>"
-	user.unEquip(src, 1)
-	qdel(src)
-	return
-
-/obj/item/weapon/honkbot_assembly/attackby(obj/item/I, mob/user)
-	..()
-	if(isprox(I))
-		user.drop_item()
-		user << "<span class='notice'>You complete the Honkbot! Beep boop HONK!</span>"
-		var/obj/machinery/bot/honkbot/S = new /obj/machinery/bot/honkbot
-		S.loc = get_turf(src)
-		S.name = created_name
-		qdel(I)
-		qdel(src)
-
-	else if(istype(I, /obj/item/weapon/pen))
-		var/t = copytext(stripped_input(user, "Enter new robot name", name, created_name),1,MAX_NAME_LEN)
-		if(!t)
-			return
-		if(!in_range(src, usr) && loc != usr)
-			return
-		created_name = t
+//Honk Construction - ADMIN ONLY BECAUSE HONK
