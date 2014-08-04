@@ -413,6 +413,6 @@ Maintenance panel is [open ? "opened" : "closed"]<BR>"},
 	..()
 	if(!isalien(victim))
 		victim = user
-		mode = BOT_HUNT
+		mode = BOT_CHASE
 
 //Honk Construction - ADMIN ONLY BECAUSE HONK
